@@ -12,19 +12,22 @@ class DashboardController extends Controller
     /**
      * Punto de entrada único para el Dashboard de MovSabana.
      */
+    /**
+     * Punto de entrada único - redirige según el rol
+     */
     public function index()
-{
-    $user = auth()->user();
-    
-    // Obtenemos las rutas según el contexto
-    $rutas = match(true) {
-        $user->hasRole('administrador') => Ruta::with(['conductor', 'vehiculo'])->get(),
-        $user->hasRole('conductor')     => Ruta::where('user_id', $user->id)->get(),
-        default                        => Ruta::where('estado', 'activo')->get(),
-    };
+    {
+        $user = auth()->user();
 
-    return view('dashboard', compact('rutas'));
-}
+        // Redirige a la vista correspondiente según el rol
+        if ($user->hasRole('administrador')) {
+            return $this->adminDashboard();
+        } elseif ($user->hasRole('conductor')) {
+            return $this->conductorDashboard($user);
+        } else {
+            return $this->usuarioDashboard();
+        }
+    }
 
     /**
      * Vista de Administrador: Mapa completo, gestión de rutas e incidentes.
@@ -33,12 +36,13 @@ class DashboardController extends Controller
     {
         $data = [
             'totalRutas' => Ruta::count(),
-            'rutas' => Ruta::all(),
-            // Cargamos el incidente de red (Ej: Desvío en Variante Chía)
-            'incidentes' => Incidente::where('activo', true)->get(),
+            'rutasActivas' => Ruta::where('estado', 'activo')->count(),
+            'rutas' => Ruta::with(['conductor', 'vehiculo'])->latest()->get(),
+            'incidentes' => Incidente::where('activo', true)->latest()->get(),
             'stats' => [
                 'eficiencia' => 92,
-                'alertas_hoy' => Incidente::whereDate('created_at', today())->count()
+                'alertas_hoy' => Incidente::whereDate('created_at', today())->count(),
+                'conductores_en_ruta' => Ruta::where('estado', 'activo')->count(),
             ]
         ];
 
@@ -50,16 +54,27 @@ class DashboardController extends Controller
      */
     private function conductorDashboard($user)
     {
-        // Supongamos que el modelo User tiene una relación 'ruta'
-        $rutaAsignada = $user->ruta ?? null; 
+        // Obtener la ruta asignada hoy (activa)
+        $rutaAsignada = Ruta::where('user_id', $user->id)
+                            ->where('estado', 'activo')
+                            ->first();
         
         $data = [
             'ruta' => $rutaAsignada,
+            'misRutas' => Ruta::where('user_id', $user->id)
+                              ->latest()
+                              ->limit(5)
+                              ->get(),
             // Solo incidentes que afecten su zona de operación
             'alertasGps' => Incidente::where('activo', true)
                             ->where('tipo', 'desvio')
                             ->latest()
-                            ->get()
+                            ->limit(10)
+                            ->get(),
+            'estadisticas' => [
+                'viajes_totales' => Ruta::where('user_id', $user->id)->count(),
+                'rating_promedio' => $user->rating_promedio ?? 4.5,
+            ]
         ];
 
         return view('conductores.dashboard', $data);

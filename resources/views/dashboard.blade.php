@@ -1,44 +1,11 @@
-<x-app-layout>
+<x-slot name="header">
+    <h2 class="text-3xl font-bold text-slate-800">
+        Consulta de Movilidad <span class="text-cyan-500">MovSabana</span>
+    </h2>
+    <p class="text-sm text-slate-500">Encuentra rutas disponibles</p>
+</x-slot>
 
-    <x-slot name="header">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 py-2">
-
-            <div>
-                <h2 class="font-black text-3xl text-slate-800 tracking-tighter uppercase">
-                    {{ __('Panel Central') }}
-                    <span class="text-cyan-500">MovSabana</span>
-                </h2>
-
-                <p class="text-sm text-slate-500 font-bold italic">
-                    @if(auth()->user()->hasRole('administrador')) GESTIÓN ESTRATÉGICA @endif
-                    @if(auth()->user()->hasRole('conductor')) MI HOJA DE RUTA @endif
-                    @if(auth()->user()->hasRole('usuario')) CONSULTA DE MOVILIDAD @endif
-                    — Chía, Cundinamarca
-                </p>
-            </div>
-
-            @if(auth()->user()->hasRole('administrador'))
-            <div class="flex gap-3">
-
-                <a href="{{ route('admin.reportes.create') }}"
-                   class="inline-flex items-center bg-white border-2 border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-black shadow-sm hover:bg-slate-50 transition-all uppercase tracking-tight">
-                    Generar Reporte
-                </a>
-
-                <a href="{{ route('admin.rutas.create') }}"
-                   class="inline-flex items-center bg-[#001529] text-white px-5 py-2.5 rounded-xl text-sm font-black shadow-lg hover:bg-cyan-600 transition-all uppercase tracking-tight">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path>
-                    </svg>
-
-                    Nueva Ruta
-                </a>
-
-            </div>
-            @endif
-
-        </div>
-    </x-slot>
+<!-- El resto del dashboard.blade.php se mantiene igual -->
 
     <!-- CHART -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
