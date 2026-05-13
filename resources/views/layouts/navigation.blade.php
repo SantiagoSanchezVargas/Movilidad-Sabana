@@ -21,10 +21,26 @@
                 </div>
             </div>
 
-            <!-- Menú de Usuario (Santiago) -->
-            <div class="flex items-center text-gray-300">
-                <span class="text-[10px] font-black mr-3 uppercase border border-white/20 px-2 py-1 rounded">Admin</span>
-                <span class="text-xs font-bold">{{ Auth::user()->name }}</span>
+            <!-- Menú de Usuario -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center text-gray-300">
+                    @if(auth()->user()->hasRole('administrador'))
+                        <span class="text-[10px] font-black mr-3 uppercase border border-red-500 px-2 py-1 rounded text-red-400">Admin</span>
+                    @elseif(auth()->user()->hasRole('conductor'))
+                        <span class="text-[10px] font-black mr-3 uppercase border border-blue-500 px-2 py-1 rounded text-blue-400">Conductor</span>
+                    @else
+                        <span class="text-[10px] font-black mr-3 uppercase border border-cyan-400 px-2 py-1 rounded text-cyan-400">Usuario</span>
+                    @endif
+                    <span class="text-xs font-bold">{{ Auth::user()->nombre }}</span>
+                </div>
+
+                <!-- Botón Logout -->
+                <form method="POST" action="{{ route('logout') }}" class="inline">
+                    @csrf
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded transition-all duration-200">
+                        🚪 Salir
+                    </button>
+                </form>
             </div>
         </div>
     </div>
