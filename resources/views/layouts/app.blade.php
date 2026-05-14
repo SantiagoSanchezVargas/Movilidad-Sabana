@@ -32,9 +32,9 @@
 
             <!-- Page Content -->
             <main>
-                <div class="animate-in fade-in duration-500">
-                    {{ $slot }}
-                </div>
+            <div class="animate-in fade-in duration-500">
+                {{ $slot ?? '' }}
+            </div>
             </main>
         </div>
     </body>

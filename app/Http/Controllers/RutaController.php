@@ -34,7 +34,55 @@ class RutaController extends Controller
             'data' => $ruta
         ]);
     }
+/* ==========================================
+    GUARDAR NUEVA RUTA
+========================================== */
+public function store(Request $request)
+{
+    // 1. Validación (Aquí es donde se lanza el error "The codigo has already been taken")
+    $validated = $request->validate([
+        'nombre' => 'required|string|max:255',
+        'codigo' => 'required|string|unique:rutas,codigo|max:50',
+        'precio' => 'nullable|numeric',
+        'tiempo_estimado' => 'nullable|integer',
+    ]);
 
+    try {
+        DB::beginTransaction();
+
+        // 2. Crear la Ruta
+        $ruta = Ruta::create([
+            'nombre' => $validated['nombre'],
+            'codigo' => trim($validated['codigo']), // Limpiamos espacios
+            'precio' => $request->precio ?? 5000,
+            'tiempo_estimado' => $request->tiempo_estimado ?? 30,
+        ]);
+
+        // 3. Si vienen paradas en el request, las guardamos
+        // Esto depende de cómo estés enviando el JSON de paradas desde el mapa
+        if ($request->has('paradas')) {
+            $paradas = json_decode($request->paradas, true);
+            foreach ($paradas as $index => $parada) {
+                $ruta->paradas()->create([
+                    'nombre' => $parada['nombre'] ?? "Parada " . ($index + 1),
+                    'lat' => $parada['lat'],
+                    'lng' => $parada['lng'],
+                    'numero_orden' => $index + 1,
+                    // El Mutator en el modelo Parada se encarga de 'ubicacion'
+                ]);
+            }
+        }
+
+        DB::commit();
+
+        return redirect()->route('admin.rutas.index')
+                         ->with('success', 'Ruta creada exitosamente.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->withInput()->withErrors(['error' => 'Error al guardar: ' . $e->getMessage()]);
+    }
+}
     /* ==========================================
        BUSCAR RUTAS CERCANAS
     ========================================== */

@@ -19,7 +19,7 @@ return new class extends Migration
         
         // Creamos 'role_id' para la relación con la tabla roles
         if (!Schema::hasColumn('users', 'role_id')) {
-            $table->foreignId('role_id')->nullable()->constrained('roles')->onDelete('set null');
+            $table->foreignUuid('role_id')->nullable()->constrained('roles')->onDelete('set null');
         }
 
         // Si existe una columna vieja llamada 'role' (string), la borramos para no confundir

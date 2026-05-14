@@ -43,13 +43,24 @@
 
         <!-- Tipo de Usuario -->
         <div class="mt-4">
-            <x-input-label for="role" :value="__('Tipo de Usuario')" class="text-slate-300" />
-            <select name="role" id="role" class="block mt-1 w-full bg-[#0f172a] border-slate-600 text-white focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                <option value="usuario">Pasajero / Usuario General</option>
-                <option value="conductor">Conductor</option>
-                <option value="administrador">Administrador</option>
+           <x-input-label for="role_id" :value="__('Tipo de Usuario')" class="text-slate-300" />
+
+            <select
+                id="role_id"
+                name="role_id"
+                required
+                class="block mt-1 w-full bg-[#0f172a] border-slate-600 text-white rounded-md focus:border-indigo-500 focus:ring-indigo-500"
+            >
+                <option value="">Selecciona un rol</option>
+
+                @foreach($roles as $role)
+                    <option value="{{ $role->id }}">
+                        {{ $role->nombre }}
+                    </option>
+                @endforeach
             </select>
-            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+
+            <x-input-error :messages="$errors->get('role_id')" class="mt-2" />
         </div>
 
         <div class="flex items-center justify-end mt-6">

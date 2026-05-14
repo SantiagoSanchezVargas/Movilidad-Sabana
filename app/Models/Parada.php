@@ -48,4 +48,20 @@ class Parada extends Model
 
         return $coords ? ['lat' => (float)$coords->lat, 'lng' => (float)$coords->lng] : null;
     }
+    /* ==========================================
+       MUTATOR PARA EVITAR ERROR DE GEOMETRÍA
+    ========================================== */
+    public function setUbicacionAttribute($value)
+{
+    // Si mandamos lat y lng explícitamente en el array de creación
+    if (isset($this->attributes['lat']) && isset($this->attributes['lng'])) {
+        $lat = $this->attributes['lat'];
+        $lng = $this->attributes['lng'];
+        $this->attributes['ubicacion'] = DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)");
+    } 
+    // Si por alguna razón no hay coordenadas, evitamos el string vacío que rompe PostGIS
+    else {
+        $this->attributes['ubicacion'] = null;
+    }
+}
 }

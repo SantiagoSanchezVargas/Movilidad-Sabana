@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('rutas', RutaAdminController::class);
+    Route::post('/admin/rutas', [RutaController::class, 'store'])->name('admin.rutas.store');
     Route::get('/reportes/nuevo', [RutaAdminController::class, 'reporte'])->name('reportes.create');
 });
 

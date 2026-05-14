@@ -39,24 +39,57 @@ class RutaAdminController extends Controller
     /* ==========================================
        GUARDAR
     ========================================== */
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $request->validate([
             'codigo' => 'required|max:50|unique:rutas,codigo',
             'nombre' => 'required|max:255',
-            'descripcion' => 'nullable|max:1000',
+            'paradas' => 'nullable|json',
         ]);
 
-        Ruta::create([
-            'id' => (string) Str::uuid(),
-            'codigo' => $request->codigo,
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $ruta = Ruta::create([
+                'id' => (string) Str::uuid(),
+                'user_id' => auth()->id(),
+                'codigo' => $request->codigo,
+                'nombre' => $request->nombre,
+                'descripcion' => $request->descripcion,
+                'distancia_km' => $request->distancia_km,
+                'duracion_estimada' => $request->duracion_estimada,
+                'origen' => $request->origen,
+                'destino' => $request->destino,
+                'estado' => 'activo',
+            ]);
 
-        return redirect()
-            ->route('admin.rutas.index')
-            ->with('success', 'Ruta creada correctamente.');
+            if ($request->has('paradas')) {
+                $paradas = json_decode($request->paradas, true);
+                foreach ($paradas as $index => $parada) {
+                    
+                    // --- CORRECCIÓN DE TIPO PARA EL CHECK CONSTRAINT ---
+                    $tipo = $parada['tipo'] ?? 'intermedia';
+                    if (!in_array($tipo, ['salida', 'intermedia', 'destino'])) {
+                        $tipo = 'intermedia'; 
+                    }
+
+                    $ruta->paradas()->create([
+                        'nombre' => $parada['nombre'] ?? "Parada " . ($index + 1),
+                        'numero_orden' => $index + 1,
+                        'lat' => $parada['lat'],
+                        'lng' => $parada['lng'],
+                        'tarifa_desde_origen' => $parada['tarifa'] ?? 0,
+                        'tipo_parada' => $tipo, // <--- CAMBIADO: Antes forzaba 'regular'
+                        'ubicacion' => null,    // <--- CAMBIADO: El Mutator en Parada.php hará el resto
+                        'descripcion' => $parada['descripcion'] ?? '',
+                        'radio_metros' => $parada['radio'] ?? 50,
+                        'es_obligatoria' => $parada['obligatoria'] ?? false,
+                    ]);
+                }
+            }
+
+            return redirect()
+                ->route('admin.rutas.show', $ruta->id)
+                ->with('success', 'Ruta creada correctamente.');
+        });
     }
 
     /* ==========================================
@@ -76,7 +109,9 @@ class RutaAdminController extends Controller
     ========================================== */
     public function edit($id)
     {
-        $ruta = Ruta::findOrFail($id);
+        $ruta = Ruta::with(['paradas' => function ($q) {
+            $q->orderBy('numero_orden');
+        }])->findOrFail($id);
 
         return view('admin.rutas.edit', compact('ruta'));
     }
@@ -84,27 +119,50 @@ class RutaAdminController extends Controller
     /* ==========================================
        ACTUALIZAR
     ========================================== */
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $ruta = Ruta::findOrFail($id);
 
         $request->validate([
             'codigo' => 'required|max:50|unique:rutas,codigo,' . $ruta->id . ',id',
             'nombre' => 'required|max:255',
-            'descripcion' => 'nullable|max:1000',
+            'paradas' => 'nullable|json',
         ]);
 
-        $ruta->update([
-            'codigo' => $request->codigo,
-            'nombre' => $request->nombre,
-            'descripcion' => $request->descripcion,
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $ruta) {
+            $ruta->update($request->only(['codigo', 'nombre', 'descripcion', 'distancia_km', 'duracion_estimada', 'origen', 'destino']));
 
-        return redirect()
-            ->route('admin.rutas.index')
-            ->with('success', 'Ruta actualizada correctamente.');
+            if ($request->has('paradas')) {
+                $ruta->paradas()->delete(); 
+                $paradas = json_decode($request->paradas, true);
+                foreach ($paradas as $index => $parada) {
+                    
+                    // --- CORRECCIÓN DE TIPO ---
+                    $tipo = $parada['tipo'] ?? 'intermedia';
+                    if (!in_array($tipo, ['salida', 'intermedia', 'destino'])) {
+                        $tipo = 'intermedia';
+                    }
+
+                    $ruta->paradas()->create([
+                        'nombre' => $parada['nombre'] ?? "Parada " . ($index + 1),
+                        'numero_orden' => $index + 1,
+                        'lat' => $parada['lat'],
+                        'lng' => $parada['lng'],
+                        'tarifa_desde_origen' => $parada['tarifa'] ?? 0,
+                        'tipo_parada' => $tipo,
+                        'ubicacion' => null, 
+                        'descripcion' => $parada['descripcion'] ?? '',
+                        'radio_metros' => $parada['radio'] ?? 50,
+                        'es_obligatoria' => $parada['obligatoria'] ?? false,
+                    ]);
+                }
+            }
+
+            return redirect()
+                ->route('admin.rutas.show', $ruta->id)
+                ->with('success', 'Ruta actualizada correctamente.');
+        });
     }
-
     /* ==========================================
        ELIMINAR
     ========================================== */

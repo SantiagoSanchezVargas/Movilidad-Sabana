@@ -3,23 +3,23 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $rol = \App\Models\Role::create(['nombre' => 'pasajero']);
+        $this->call(RoleSeeder::class);
 
-        $user = \App\Models\User::create([
-            'nombre' => 'Santiago',
+        $adminRole = Role::where('nombre', 'administrador')->first();
+
+        User::create([
+            'name' => 'Santiago',
             'apellido' => 'Sánchez',
             'email' => 'santiagoasanchez@ucundinamarca.edu.co',
-            'password' => Hash::make('password123'),
-            'documento' => '1010840935',
-            'estado' => 'activo',
+            'password' => bcrypt('12345678'),
+            'role_id' => $adminRole->id,
         ]);
-        
-        $user->roles()->attach($rol->id);
     }
 }

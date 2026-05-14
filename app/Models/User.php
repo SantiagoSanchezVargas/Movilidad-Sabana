@@ -28,15 +28,13 @@ class User extends Authenticatable
     ];
 
     // Relación con Roles
-    public function rol()
-    {
-        // Esto busca la tabla 'roles' usando 'role_id'
-        return $this->belongsTo(Role::class, 'role_id');
-    }
-
-    public function hasRole($roleNombre)
-    {
-        // Verifica si el nombre del rol coincide (ej. 'administrador')
-        return $this->rol?->nombre === $roleNombre;
-    }
+public function role()
+{
+    return $this->belongsTo(Role::class, 'role_id');
 }
+
+public function hasRole($roleName): bool
+{
+    return $this->role && $this->role->nombre === $roleName;
+}
+    }
