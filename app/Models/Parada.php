@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB; // Agrega esto
 
 class Parada extends Model
 {
-    use HasUuids;
+    use HasUuids, LogsActivity;
 
     public $incrementing = false;
     protected $keyType = 'string';

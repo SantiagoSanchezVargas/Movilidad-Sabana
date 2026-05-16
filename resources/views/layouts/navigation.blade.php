@@ -32,8 +32,18 @@
                         <span class="text-[10px] font-black mr-3 uppercase border border-cyan-400 px-2 py-1 rounded text-cyan-400">Usuario</span>
                     @endif
                     <span class="text-xs font-bold">{{ Auth::user()->nombre }}</span>
+                                  @if(Auth::user()->hasRole('administrador'))
+    <a href="{{ route('admin.jivochat.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+        💬 Mensajes JivoChat
+    </a>
+@endif
+@if(Auth::user()->hasRole('administrador'))
+    <a href="{{ route('admin.audit-logs.index') }}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">
+        📋 Audit Logs
+    </a>
+@endif
                 </div>
-
+  
                 <!-- Botón Logout -->
                 <form method="POST" action="{{ route('logout') }}" class="inline">
                     @csrf

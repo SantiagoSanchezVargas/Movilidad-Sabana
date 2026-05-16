@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RutaController;
 use App\Http\Controllers\Admin\RutaAdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\AuditLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,5 +59,12 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
 Route::middleware(['auth', 'role:conductor'])->prefix('conductor')->name('conductor.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
-
+Route::post('/api/jivochat/webhook', [JivochatController::class, 'webhook']);
+Route::middleware(['auth', 'role:administrador'])->group(function () {
+    Route::get('/admin/jivochat', [JivochatController::class, 'index'])->name('admin.jivochat.index');
+});
+Route::middleware(['auth', 'role:administrador'])->group(function () {
+    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
+    Route::get('/admin/audit-logs/{id}', [AuditLogController::class, 'show'])->name('admin.audit-logs.show');
+});
 require __DIR__.'/auth.php';

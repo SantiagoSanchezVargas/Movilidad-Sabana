@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class Ruta extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, LogsActivity;
 
     public $incrementing = false;
     protected $keyType = 'string';
