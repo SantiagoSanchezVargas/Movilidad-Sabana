@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Facades\DB; // Agrega esto
+use App\Traits\LogsActivity;
+
 
 class Parada extends Model
 {

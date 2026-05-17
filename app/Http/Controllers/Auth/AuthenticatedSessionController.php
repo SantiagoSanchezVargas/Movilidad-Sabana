@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 
     // Redirección basada en roles de MovSabana
     if ($user->hasRole('administrador')) {
-        return redirect()->intended(route('views.layouts.admin.dashboard', absolute: false));
+       return redirect()->route('dashboard');
     }
 
     if ($user->hasRole('conductor')) {
