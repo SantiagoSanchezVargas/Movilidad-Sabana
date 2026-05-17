@@ -6,6 +6,7 @@ use App\Http\Controllers\RutaController;
 use App\Http\Controllers\Admin\RutaAdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\ConductorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -56,8 +57,8 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
 | ÁREA DE CONDUCTORES (Protegida por rol:conductor)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:conductor'])->prefix('conductor')->name('conductor.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('conductores', ConductorController::class);
 });
 Route::post('/api/jivochat/webhook', [JivochatController::class, 'webhook']);
 Route::middleware(['auth', 'role:administrador'])->group(function () {
