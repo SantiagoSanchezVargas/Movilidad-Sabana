@@ -53,7 +53,7 @@ class ConductorController extends Controller
             'nombre' => 'required|max:255',
             'licencia' => 'required|unique:conductores,licencia,' . $conductor->id . ',id',
             'telefono' => 'required|max:20',
-            'estado' => 'required|in:activo,inactivo,suspendido',
+            'estado' => 'required|in:Activo,Inactivo,Suspendido',
         ]);
 
         $conductor->update([

@@ -54,7 +54,21 @@
                                           class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700 placeholder-slate-300">{{ old('descripcion', $ruta->descripcion) }}</textarea>
                             </div>
                         </div>
-
+                        <!-- Seleccionar Conductor -->
+<div>
+    <label class="block text-sm font-bold text-slate-700 mb-2">Asignar Conductor</label>
+    <select name="conductor_id" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent">
+        <option value="">-- Sin asignar --</option>
+        @foreach($conductores as $conductor)
+            <option value="{{ $conductor->id }}" {{ $ruta->conductor_id === $conductor->id ? 'selected' : '' }}>
+                {{ $conductor->nombre }}
+            </option>
+        @endforeach
+    </select>
+    @error('conductor_id')
+        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+    @enderror
+</div>
                         <div class="pt-6">
                             <button type="submit" 
                                     class="w-full md:w-auto bg-[#001529] text-white px-10 py-4 rounded-2xl text-sm font-black shadow-xl hover:bg-cyan-600 transition-all uppercase tracking-widest">

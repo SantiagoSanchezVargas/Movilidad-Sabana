@@ -68,7 +68,7 @@ class RegisteredUserController extends Controller
         }
 
         if ($user->hasRole('conductor')) {
-            return redirect()->route('conductor.dashboard');
+            return redirect()->route('dashboard');
         }
 
         return redirect()->route('dashboard');

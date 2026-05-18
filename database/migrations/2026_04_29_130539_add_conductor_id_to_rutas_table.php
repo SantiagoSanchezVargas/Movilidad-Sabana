@@ -9,20 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+public function up(): void
 {
     Schema::table('rutas', function (Blueprint $table) {
-        $table->foreignUuid('conductor_id')->nullable()->constrained('conductores')->onDelete('set null');
+        $table->uuid('conductor_id')->nullable()->after('vehiculo_id');
+        $table->foreign('conductor_id')->references('id')->on('conductores')->onDelete('set null');
     });
 }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::table('rutas', function (Blueprint $table) {
-            //
-        });
-    }
+public function down(): void
+{
+    Schema::table('rutas', function (Blueprint $table) {
+        $table->dropForeign(['conductor_id']);
+        $table->dropColumn('conductor_id');
+    });
+}
 };

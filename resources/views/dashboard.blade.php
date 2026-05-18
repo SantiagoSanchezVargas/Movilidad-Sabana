@@ -133,19 +133,91 @@
 
         </div>
     </div>
-    @else
-    <!-- DASHBOARD USUARIO -->
-    <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
+   @else
+<!-- DASHBOARD PASAJERO -->
+<div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-xl font-bold mb-4">Rutas Disponibles</h3>
-                <p class="text-gray-600">Dashboard de usuario en desarrollo...</p>
+        <!-- CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-cyan-500">
+                <h3 class="text-gray-500 text-sm font-semibold">Viajes Realizados</h3>
+                <p class="text-3xl font-bold text-cyan-600">{{ $totalViajes ?? 0 }}</p>
             </div>
-
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <h3 class="text-gray-500 text-sm font-semibold">Gasto Total</h3>
+                <p class="text-3xl font-bold text-green-600">${{ $gastoTotal ?? 0 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                <h3 class="text-gray-500 text-sm font-semibold">Favoritos</h3>
+                <p class="text-3xl font-bold text-blue-600">{{ $favoritos ?? 0 }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+                <h3 class="text-gray-500 text-sm font-semibold">Rating</h3>
+                <p class="text-3xl font-bold text-purple-600">⭐ {{ $ratingPromedio ?? 4.5 }}</p>
+            </div>
         </div>
+
+        <!-- GRÁFICOS -->
+        <div class="grid grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="font-bold text-lg mb-4">📈 Mis Viajes por Mes</h3>
+                <canvas id="viajesChart"></canvas>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="font-bold text-lg mb-4">💸 Gastos por Categoría</h3>
+                <canvas id="gastosChart"></canvas>
+            </div>
+        </div>
+
     </div>
-    @endif
+</div>
+
+<script>
+    // Gráfico Viajes
+    const viajesCtx = document.getElementById('viajesChart')?.getContext('2d');
+    if (viajesCtx) {
+        new Chart(viajesCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Viajes',
+                    data: [5, 8, 12, 10, 15, 18],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    // Gráfico Gastos
+    const gastosCtx = document.getElementById('gastosChart')?.getContext('2d');
+    if (gastosCtx) {
+        new Chart(gastosCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Transporte', 'Comidas', 'Diversión'],
+                datasets: [{
+                    data: [45, 30, 25],
+                    backgroundColor: ['#ef4444', '#10b981', '#3b82f6'],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+</script>
+@endif
 
     <script>
         // Chart placeholder
