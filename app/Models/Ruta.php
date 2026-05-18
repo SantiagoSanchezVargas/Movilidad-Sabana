@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use App\Traits\LogsActivity;
+use App\Models\Conductor;
 
 class Ruta extends Model
 {
@@ -17,18 +18,19 @@ class Ruta extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = [
-        'user_id',
-        'vehiculo_id', // Añadido para el Eager Loading
-        'nombre',
-        'codigo',
-        'descripcion',
-        'distancia_km',
-        'duracion_estimada',
-        'estado',
-        'origen',
-        'destino'
-    ];
+   protected $fillable = [
+    'user_id',
+    'conductor_id',
+    'vehiculo_id',
+    'nombre',
+    'codigo',
+    'descripcion',
+    'distancia_km',
+    'duracion_estimada',
+    'estado',
+    'origen',
+    'destino'
+];
 
     protected $casts = [
         'parametros_ruta' => 'json',
@@ -45,7 +47,7 @@ class Ruta extends Model
     // Ruta::with(['conductor'])
     public function conductor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Conductor::class, 'conductor_id');
     }
 
     // Definimos 'vehiculo' para que funcione con: 

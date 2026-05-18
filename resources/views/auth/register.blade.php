@@ -41,23 +41,50 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <!-- Tipo de Usuario -->
-        <div class="mt-4">
-           <x-input-label for="role_id" :value="__('Tipo de Usuario')" class="text-slate-300" />
+<!-- Tipo de Usuario -->
+<div class="mt-4">
+   <x-input-label for="role_id" :value="__('Tipo de Usuario')" class="text-slate-300" />
 
-            <select
-                id="role_id"
-                name="role_id"
-                required
-                class="block mt-1 w-full bg-[#0f172a] border-slate-600 text-white rounded-md focus:border-indigo-500 focus:ring-indigo-500"
-            >
-                <option value="">Selecciona un rol</option>
+    <select
+        id="role_id"
+        name="role_id"
+        required
+        class="block mt-1 w-full bg-[#0f172a] border-slate-600 text-white rounded-md focus:border-indigo-500 focus:ring-indigo-500"
+    >
+        <option value="">Selecciona un rol</option>
 
-                @foreach($roles as $role)
-                    <option value="{{ $role->id }}">
-                        {{ $role->nombre }}
-                    </option>
-                @endforeach
+        @foreach($roles as $role)
+            <option value="{{ $role->id }}">
+                {{ $role->nombre }}
+            </option>
+        @endforeach
+    </select>
+
+    <x-input-error :messages="$errors->get('role_id')" class="mt-2" />
+</div>
+
+<!-- Licencia (solo para conductores) - FUERA DEL SELECT -->
+<div id="licencia-field" style="display: none;" class="mt-4">
+    <x-input-label for="licencia" :value="__('Número de Licencia')" class="text-slate-300" />
+    <x-text-input id="licencia" class="block mt-1 w-full bg-[#0f172a] border-slate-600 text-white focus:border-indigo-500 focus:ring-indigo-500" type="text" name="licencia" :value="old('licencia')" placeholder="Ej: 123456789" />
+    <x-input-error :messages="$errors->get('licencia')" class="mt-2" />
+</div>
+
+<!-- Teléfono (solo para conductores) - FUERA DEL SELECT -->
+<div id="telefono-field" style="display: none;" class="mt-4">
+    <x-input-label for="telefono" :value="__('Teléfono')" class="text-slate-300" />
+    <x-text-input id="telefono" class="block mt-1 w-full bg-[#0f172a] border-slate-600 text-white focus:border-indigo-500 focus:ring-indigo-500" type="text" name="telefono" :value="old('telefono')" placeholder="Ej: 3001234567" />
+    <x-input-error :messages="$errors->get('telefono')" class="mt-2" />
+</div>
+
+<script>
+    document.getElementById('role_id').addEventListener('change', function() {
+        const roleText = this.options[this.selectedIndex].text;
+        const isConductor = roleText.toLowerCase().includes('conductor');
+        document.getElementById('licencia-field').style.display = isConductor ? 'block' : 'none';
+        document.getElementById('telefono-field').style.display = isConductor ? 'block' : 'none';
+    });
+</script>
             </select>
 
             <x-input-error :messages="$errors->get('role_id')" class="mt-2" />

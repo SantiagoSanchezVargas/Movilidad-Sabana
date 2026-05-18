@@ -121,18 +121,52 @@
 
         </div>
     </div>
-    @elseif(auth()->user()->hasRole('conductor'))
-    <!-- DASHBOARD CONDUCTOR -->
-    <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
+   @elseif(auth()->user()->hasRole('conductor'))
+<!-- DASHBOARD CONDUCTOR -->
+<div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-xl font-bold mb-4">Mi Ruta Actual</h3>
-                <p class="text-gray-600">Dashboard de conductor en desarrollo...</p>
+        <!-- MIS RUTAS ASIGNADAS -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-slate-800 text-white">
+                <h3 class="text-lg font-bold">🚗 Mis Rutas Asignadas</h3>
             </div>
-
+            <table class="w-full">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Ruta</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Origen</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Destino</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Distancia</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($misRutas as $ruta)
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-bold">{{ $ruta->nombre }}</td>
+                            <td class="px-6 py-4">{{ $ruta->origen }}</td>
+                            <td class="px-6 py-4">{{ $ruta->destino }}</td>
+                            <td class="px-6 py-4">{{ $ruta->distancia_km }} km</td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                                    {{ ucfirst($ruta->estado) }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                📭 No hay rutas asignadas aún
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+
     </div>
+</div>
    @else
 <!-- DASHBOARD PASAJERO -->
 <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">

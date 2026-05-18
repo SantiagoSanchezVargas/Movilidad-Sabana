@@ -54,6 +54,55 @@
                                           class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700 placeholder-slate-300">{{ old('descripcion', $ruta->descripcion) }}</textarea>
                             </div>
                         </div>
+                    </div>
+
+                        <!-- AGREGAR ESTO ⬇️ -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Origen -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Origen</label>
+                                <input type="text" name="origen" value="{{ old('origen', $ruta->origen) }}" required
+                                       class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700 placeholder-slate-300">
+                                @error('origen') <p class="text-xs text-rose-500 font-bold mt-1 ml-2">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Destino -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Destino</label>
+                                <input type="text" name="destino" value="{{ old('destino', $ruta->destino) }}" required
+                                       class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700 placeholder-slate-300">
+                                @error('destino') <p class="text-xs text-rose-500 font-bold mt-1 ml-2">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Distancia -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Distancia (km)</label>
+                                <input type="number" name="distancia_km" value="{{ old('distancia_km', $ruta->distancia_km) }}" step="0.01" required
+                                       class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700 placeholder-slate-300">
+                                @error('distancia_km') <p class="text-xs text-rose-500 font-bold mt-1 ml-2">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Duración Estimada -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Duración Estimada</label>
+                                <input type="text" name="duracion_estimada" value="{{ old('duracion_estimada', $ruta->duracion_estimada) }}" required
+                                       class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700 placeholder-slate-300">
+                                @error('duracion_estimada') <p class="text-xs text-rose-500 font-bold mt-1 ml-2">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Estado -->
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Estado</label>
+                                <select name="estado" required
+                                        class="w-full bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-cyan-500/10 font-bold text-slate-700">
+                                    <option value="activo" {{ old('estado', $ruta->estado) === 'activo' ? 'selected' : '' }}>Activo</option>
+                                    <option value="inactivo" {{ old('estado', $ruta->estado) === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+                                </select>
+                                @error('estado') <p class="text-xs text-rose-500 font-bold mt-1 ml-2">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        <!-- Seleccionar Conductor -->
                         <!-- Seleccionar Conductor -->
 <div>
     <label class="block text-sm font-bold text-slate-700 mb-2">Asignar Conductor</label>

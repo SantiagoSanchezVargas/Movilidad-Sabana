@@ -15,19 +15,71 @@ class DashboardController extends Controller
     /**
      * Punto de entrada único - redirige según el rol
      */
-    public function index()
-    {
-        $user = auth()->user();
+public function index()
+{
+    $user = Auth::user();
 
-        // Redirige a la vista correspondiente según el rol
-        if ($user->hasRole('administrador')) {
-            return $this->adminDashboard();
-        } elseif ($user->hasRole('conductor')) {
-            return $this->conductorDashboard($user);
-        } else {
-            return $this->usuarioDashboard();
-        }
+    // Si es admin, mostrar dashboard admin
+    if ($user->hasRole('administrador')) {
+        $totalRutas = \App\Models\Ruta::count();
+        $rutasActivas = \App\Models\Ruta::where('estado', 'activo')->count();
+        $totalConductores = \App\Models\Conductor::count();
+        $totalUsuarios = \App\Models\User::count();
+        
+        // Contar por rol (simplificado)
+        $adminCount = 1; // Asumimos al menos 1 admin
+        $conductorCount = $totalUsuarios > 1 ? intval($totalUsuarios / 2) : 0;
+        $pasajeroCount = $totalUsuarios - $adminCount - $conductorCount;
+
+        $rutas = \App\Models\Ruta::with('conductor')->latest()->limit(10)->get();
+
+        return view('admin.dashboard', compact(
+            'totalRutas',
+            'rutasActivas',
+            'totalConductores',
+            'totalUsuarios',
+            'adminCount',
+            'conductorCount',
+            'pasajeroCount',
+            'rutas'
+        ));
     }
+
+// Si es conductor, mostrar dashboard conductor
+if ($user->hasRole('conductor')) {
+   $conductor = $user->conductor;
+
+$misRutas = $conductor
+    ? \App\Models\Ruta::where('conductor_id', $conductor->id)->get()
+    : collect();
+    $totalViajes = $misRutas->count();
+    $viajesCompletados = $misRutas->where('estado', 'activo')->count();
+    $ratingPromedio = 4.8; // Simulado
+    $kmRecorridos = $misRutas->sum('distancia_km');
+    $ingresosMes = '1200,1500,1800,2000,2200,2500'; // Simulado
+
+    return view('dashboard', compact(
+        'totalViajes',
+        'viajesCompletados',
+        'ratingPromedio',
+        'kmRecorridos',
+        'ingresosMes',
+        'misRutas'
+    ));
+}
+    // Si es pasajero, mostrar dashboard pasajero
+$totalViajes = 28; // Simulado
+$gastoTotal = 450; // Simulado
+$favoritos = 5; // Simulado
+$ratingPromedio = 4.8; // Simulado
+
+return view('dashboard', compact(
+    'totalViajes',
+    'gastoTotal',
+    'favoritos',
+    'ratingPromedio'
+));
+}
 
     /**
      * Vista de Administrador: Mapa completo, gestión de rutas e incidentes.
@@ -52,34 +104,52 @@ class DashboardController extends Controller
     /**
      * Vista de Conductor: Enfocada en su ruta actual y alertas GPS.
      */
-    private function conductorDashboard($user)
-    {
-        // Obtener la ruta asignada hoy (activa)
-        $rutaAsignada = Ruta::where('user_id', $user->id)
-                            ->where('estado', 'activo')
-                            ->first();
-        
-        $data = [
-            'ruta' => $rutaAsignada,
-            'misRutas' => Ruta::where('user_id', $user->id)
-                              ->latest()
-                              ->limit(5)
-                              ->get(),
-            // Solo incidentes que afecten su zona de operación
-            'alertasGps' => Incidente::where('activo', true)
+   private function conductorDashboard($user)
+{
+    $conductor = $user->conductor;
+
+    if (!$conductor) {
+        return view('conductores.dashboard', [
+            'ruta' => null,
+            'misRutas' => collect(),
+            'alertasGps' => collect(),
+            'estadisticas' => [
+                'viajes_totales' => 0,
+                'rating_promedio' => 0,
+            ]
+        ]);
+    }
+
+    // Ruta activa
+    $rutaAsignada = Ruta::where('conductor_id', $conductor->id)
+                        ->where('estado', 'activo')
+                        ->first();
+
+    // Todas las rutas
+    $misRutas = Ruta::where('conductor_id', $conductor->id)
+                    ->latest()
+                    ->limit(5)
+                    ->get();
+
+    $data = [
+        'ruta' => $rutaAsignada,
+
+        'misRutas' => $misRutas,
+
+        'alertasGps' => Incidente::where('activo', true)
                             ->where('tipo', 'desvio')
                             ->latest()
                             ->limit(10)
                             ->get(),
-            'estadisticas' => [
-                'viajes_totales' => Ruta::where('user_id', $user->id)->count(),
-                'rating_promedio' => $user->rating_promedio ?? 4.5,
-            ]
-        ];
 
-        return view('conductores.dashboard', $data);
-    }
+        'estadisticas' => [
+            'viajes_totales' => $misRutas->count(),
+            'rating_promedio' => $user->rating_promedio ?? 4.5,
+        ]
+    ];
 
+    return view('conductores.dashboard', $data);
+}
     /**
      * Vista de Usuario: Localización de buses y paraderos cercanos.
      */

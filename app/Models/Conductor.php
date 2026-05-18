@@ -16,10 +16,15 @@ class Conductor extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'id',
-        'nombre',
-        'licencia',
-        'telefono',
-        'estado'
-    ];
+    'id',
+    'user_id',
+    'nombre',
+    'licencia',
+    'telefono',
+    'estado'
+];
+    public function user()
+{
+    return $this->belongsTo(User::class);
+}
 }

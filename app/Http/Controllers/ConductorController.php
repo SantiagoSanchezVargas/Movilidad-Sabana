@@ -26,15 +26,14 @@ class ConductorController extends Controller
             'licencia' => 'required|unique:conductores,licencia',
             'telefono' => 'required|max:20',
         ]);
-
-        Conductor::create([
-            'id' => (string) Str::uuid(),
-            'nombre' => $request->nombre,
-            'licencia' => $request->licencia,
-            'telefono' => $request->telefono,
-            'estado' => 'Activo',
-        ]);
-
+Conductor::create([
+    'id' => (string) Str::uuid(),
+    'user_id' => $request->user_id,
+    'nombre' => $request->nombre,
+    'licencia' => $request->licencia,
+    'telefono' => $request->telefono,
+    'estado' => 'disponible',
+]);
         return redirect()->route('admin.conductores.index')
             ->with('success', 'Conductor creado correctamente.');
     }

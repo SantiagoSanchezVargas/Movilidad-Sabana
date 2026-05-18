@@ -50,15 +50,28 @@ class RegisteredUserController extends Controller
             'role_id' => ['required', 'exists:roles,id'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'apellido' => $request->apellido,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
-        ]);
+       $user = User::create([
+    'name' => $request->name,
+    'apellido' => $request->apellido,
+    'email' => $request->email,
+    'password' => Hash::make($request->password),
+    'role_id' => $request->role_id,
+]);
 
-        event(new Registered($user));
+// ⬇️ AGREGAR ESTO ⬇️
+// Si es conductor, crear registro en tabla conductores
+if ($user->hasRole('conductor')) {
+    \App\Models\Conductor::create([
+        'id' => (string) \Illuminate\Support\Str::uuid(),
+        'nombre' => $request->name . ' ' . $request->apellido,
+        'licencia' => $request->get('licencia', 'N/A'),
+        'telefono' => $request->get('telefono', 'N/A'),
+        'estado' => 'activo',
+    ]);
+}
+// ⬆️ FIN AGREGAR ⬆️
+
+event(new Registered($user));
 
         Auth::login($user);
 

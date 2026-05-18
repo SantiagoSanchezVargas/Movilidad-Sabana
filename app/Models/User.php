@@ -37,4 +37,8 @@ public function hasRole($roleName): bool
 {
     return $this->role && $this->role->nombre === $roleName;
 }
+public function conductor()
+{
+    return $this->hasOne(\App\Models\Conductor::class);
+}
     }

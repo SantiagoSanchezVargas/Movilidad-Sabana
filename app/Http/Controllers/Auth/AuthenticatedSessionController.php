@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
     }
 
     if ($user->hasRole('conductor')) {
-        return redirect()->intended(route('views.layouts.conductor.dashboard', absolute: false));
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     // Usuario estándar o consulta de movilidad

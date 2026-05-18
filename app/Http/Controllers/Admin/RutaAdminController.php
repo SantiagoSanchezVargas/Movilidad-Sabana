@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Ruta;
 use Illuminate\Http\Request;
+use App\Models\Conductor;
 use Illuminate\Support\Str;
 
 class RutaAdminController extends Controller
@@ -40,57 +41,40 @@ class RutaAdminController extends Controller
        GUARDAR
     ========================================== */
    public function store(Request $request)
-    {
-        $request->validate([
-            'codigo' => 'required|max:50|unique:rutas,codigo',
-            'nombre' => 'required|max:255',
-            'paradas' => 'nullable|json',
-        ]);
+{
+    $request->validate([
+        'nombre' => 'required|max:255',
+        'codigo' => 'required|unique:rutas,codigo',
+        'origen' => 'required',
+        'destino' => 'required',
+        'distancia_km' => 'required|numeric',
+        'duracion_estimada' => 'required',
+        'estado' => 'required|in:activo,inactivo',
+        'conductor_id' => 'nullable|exists:conductores,id',
+    ]);
 
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
-            $ruta = Ruta::create([
-                'id' => (string) Str::uuid(),
-                'user_id' => auth()->id(),
-                'codigo' => $request->codigo,
-                'nombre' => $request->nombre,
-                'descripcion' => $request->descripcion,
-                'distancia_km' => $request->distancia_km,
-                'duracion_estimada' => $request->duracion_estimada,
-                'origen' => $request->origen,
-                'destino' => $request->destino,
-                'estado' => 'activo',
-            ]);
+    $ruta = Ruta::create([
+        'id' => (string) Str::uuid(),
+        'nombre' => $request->nombre,
+        'codigo' => $request->codigo,
+        'origen' => $request->origen,
+        'destino' => $request->destino,
+        'distancia_km' => $request->distancia_km,
+        'duracion_estimada' => $request->duracion_estimada,
+        'estado' => $request->estado,
+        'conductor_id' => $request->conductor_id,
+    ]);
 
-            if ($request->has('paradas')) {
-                $paradas = json_decode($request->paradas, true);
-                foreach ($paradas as $index => $parada) {
-                    
-                    // --- CORRECCIÓN DE TIPO PARA EL CHECK CONSTRAINT ---
-                    $tipo = $parada['tipo'] ?? 'intermedia';
-                    if (!in_array($tipo, ['salida', 'intermedia', 'destino'])) {
-                        $tipo = 'intermedia'; 
-                    }
-
-                    $ruta->paradas()->create([
-                        'nombre' => $parada['nombre'] ?? "Parada " . ($index + 1),
-                        'numero_orden' => $index + 1,
-                        'lat' => $parada['lat'],
-                        'lng' => $parada['lng'],
-                        'tarifa_desde_origen' => $parada['tarifa'] ?? 0,
-                        'tipo_parada' => $tipo, // <--- CAMBIADO: Antes forzaba 'regular'
-                        'ubicacion' => null,    // <--- CAMBIADO: El Mutator en Parada.php hará el resto
-                        'descripcion' => $parada['descripcion'] ?? '',
-                        'radio_metros' => $parada['radio'] ?? 50,
-                        'es_obligatoria' => $parada['obligatoria'] ?? false,
-                    ]);
-                }
-            }
-
-            return redirect()
-                ->route('admin.rutas.show', $ruta->id)
-                ->with('success', 'Ruta creada correctamente.');
-        });
+    // Guardar paradas
+    if ($request->has('paradas')) {
+        foreach ($request->paradas as $parada) {
+            $ruta->paradas()->create($parada);
+        }
     }
+
+    return redirect()->route('admin.rutas.index')
+        ->with('success', 'Ruta creada correctamente.');
+}
 
     /* ==========================================
        VER DETALLE
@@ -111,6 +95,7 @@ class RutaAdminController extends Controller
     {
         $ruta = Ruta::findOrFail($id);
         $conductores = Conductor::all();
+       
         return view('admin.rutas.edit', compact('ruta', 'conductores'));
     }
 
@@ -120,6 +105,7 @@ class RutaAdminController extends Controller
   public function update(Request $request, $id)
 {
     $ruta = Ruta::findOrFail($id);
+
 
     $request->validate([
         'nombre' => 'required|max:255',
@@ -131,6 +117,7 @@ class RutaAdminController extends Controller
         'estado' => 'required|in:activo,inactivo',
         'conductor_id' => 'nullable|exists:conductores,id',
     ]);
+    
 
     $ruta->update([
         'nombre' => $request->nombre,
