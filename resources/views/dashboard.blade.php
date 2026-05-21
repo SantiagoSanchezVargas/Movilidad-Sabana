@@ -40,6 +40,7 @@
     <!-- CHART -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    {{-- DASHBOARD ADMINISTRADOR --}}
     @if(auth()->user()->hasRole('administrador'))
     <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
@@ -121,162 +122,218 @@
 
         </div>
     </div>
-   @elseif(auth()->user()->hasRole('conductor'))
-<!-- DASHBOARD CONDUCTOR -->
-<div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 
-        <!-- MIS RUTAS ASIGNADAS -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 bg-slate-800 text-white">
-                <h3 class="text-lg font-bold">🚗 Mis Rutas Asignadas</h3>
-            </div>
-            <table class="w-full">
-                <thead class="bg-slate-100">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-sm font-semibold">Ruta</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold">Origen</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold">Destino</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold">Distancia</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($misRutas as $ruta)
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-bold">{{ $ruta->nombre }}</td>
-                            <td class="px-6 py-4">{{ $ruta->origen }}</td>
-                            <td class="px-6 py-4">{{ $ruta->destino }}</td>
-                            <td class="px-6 py-4">{{ $ruta->distancia_km }} km</td>
-                            <td class="px-6 py-4">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                    {{ ucfirst($ruta->estado) }}
-                                </span>
-                            </td>
-                        </tr>
-                    @empty
+    {{-- DASHBOARD CONDUCTOR --}}
+    @elseif(auth()->user()->hasRole('conductor'))
+    <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
+
+            <!-- MIS RUTAS ASIGNADAS -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-slate-800 text-white">
+                    <h3 class="text-lg font-bold">🚗 Mis Rutas Asignadas</h3>
+                </div>
+                <table class="w-full">
+                    <thead class="bg-slate-100">
                         <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                📭 No hay rutas asignadas aún
-                            </td>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">Ruta</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">Origen</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">Destino</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">Distancia</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold">Estado</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @forelse($misRutas as $ruta)
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="px-6 py-4 font-bold">{{ $ruta->nombre }}</td>
+                                <td class="px-6 py-4">{{ $ruta->origen }}</td>
+                                <td class="px-6 py-4">{{ $ruta->destino }}</td>
+                                <td class="px-6 py-4">{{ $ruta->distancia_km }} km</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                                        {{ ucfirst($ruta->estado) }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                    📭 No hay rutas asignadas aún
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
+            <!-- NUEVO: SECCIÓN MAPA -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-slate-800 text-white">
+                    <h3 class="text-lg font-bold">🗺️ Mis Rutas en Mapa</h3>
+                </div>
+                
+                <!-- Contenedor del mapa -->
+                <div id="map" style="height: 500px;"></div>
+                
+                <!-- Leyenda -->
+                <div class="px-6 py-4 bg-gray-50 border-t">
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                            <span>Origen</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                            <span>Destino</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                            <span>Ruta</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
-   @else
-<!-- DASHBOARD PASAJERO -->
-<div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 
-        <!-- CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-cyan-500">
-                <h3 class="text-gray-500 text-sm font-semibold">Viajes Realizados</h3>
-                <p class="text-3xl font-bold text-cyan-600">{{ $totalViajes ?? 0 }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-                <h3 class="text-gray-500 text-sm font-semibold">Gasto Total</h3>
-                <p class="text-3xl font-bold text-green-600">${{ $gastoTotal ?? 0 }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                <h3 class="text-gray-500 text-sm font-semibold">Favoritos</h3>
-                <p class="text-3xl font-bold text-blue-600">{{ $favoritos ?? 0 }}</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-                <h3 class="text-gray-500 text-sm font-semibold">Rating</h3>
-                <p class="text-3xl font-bold text-purple-600">⭐ {{ $ratingPromedio ?? 4.5 }}</p>
-            </div>
-        </div>
-
-        <!-- GRÁFICOS -->
-        <div class="grid grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-bold text-lg mb-4">📈 Mis Viajes por Mes</h3>
-                <canvas id="viajesChart"></canvas>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="font-bold text-lg mb-4">💸 Gastos por Categoría</h3>
-                <canvas id="gastosChart"></canvas>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<script>
-    // Gráfico Viajes
-    const viajesCtx = document.getElementById('viajesChart')?.getContext('2d');
-    if (viajesCtx) {
-        new Chart(viajesCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Viajes',
-                    data: [5, 8, 12, 10, 15, 18],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } }
-            }
-        });
-    }
-
-    // Gráfico Gastos
-    const gastosCtx = document.getElementById('gastosChart')?.getContext('2d');
-    if (gastosCtx) {
-        new Chart(gastosCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Transporte', 'Comidas', 'Diversión'],
-                datasets: [{
-                    data: [45, 30, 25],
-                    backgroundColor: ['#ef4444', '#10b981', '#3b82f6'],
-                    borderColor: '#fff',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    }
-</script>
-@endif
+    {{-- SCRIPT MAPA CONDUCTOR --}}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <script>
-        // Chart placeholder
-        if (document.getElementById('rutasChart')) {
-            const ctx = document.getElementById('rutasChart');
-            new Chart(ctx, {
-                type: 'line',
+    document.addEventListener('DOMContentLoaded', function() {
+        const map = L.map('map').setView([4.8604, -74.0447], 12);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(map);
+
+        const rutasData = {!! json_encode($misRutas->map(function($ruta) {
+            return [
+                'nombre' => $ruta->nombre,
+                'origen' => $ruta->origen,
+                'destino' => $ruta->destino,
+                'distancia' => $ruta->distancia_km,
+                'originLat' => 4.8604,
+                'originLng' => -74.0447,
+                'destinoLat' => 4.7110,
+                'destinoLng' => -74.0076,
+            ];
+        })->toArray()) !!};
+
+        rutasData.forEach(ruta => {
+            // Origen (verde)
+            L.circleMarker([ruta.originLat, ruta.originLng], {
+                color: '#22c55e',
+                fillColor: '#22c55e',
+                fillOpacity: 0.8,
+                radius: 8
+            }).addTo(map).bindPopup(`<strong>${ruta.nombre}</strong><br>Origen: ${ruta.origen}`);
+
+            // Destino (rojo)
+            L.circleMarker([ruta.destinoLat, ruta.destinoLng], {
+                color: '#ef4444',
+                fillColor: '#ef4444',
+                fillOpacity: 0.8,
+                radius: 8
+            }).addTo(map).bindPopup(`<strong>${ruta.nombre}</strong><br>Destino: ${ruta.destino}`);
+
+            // Línea (azul)
+            L.polyline(
+                [[ruta.originLat, ruta.originLng], [ruta.destinoLat, ruta.destinoLng]],
+                { color: '#3b82f6', weight: 3, opacity: 0.7, dashArray: '5, 5' }
+            ).addTo(map).bindPopup(`<strong>${ruta.nombre}</strong><br>Distancia: ${ruta.distancia} km`);
+        });
+    });
+    </script>
+
+    {{-- DASHBOARD PASAJERO --}}
+    @else
+    <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
+
+            <!-- CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-cyan-500">
+                    <h3 class="text-gray-500 text-sm font-semibold">Viajes Realizados</h3>
+                    <p class="text-3xl font-bold text-cyan-600">{{ $totalViajes ?? 0 }}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                    <h3 class="text-gray-500 text-sm font-semibold">Gasto Total</h3>
+                    <p class="text-3xl font-bold text-green-600">${{ $gastoTotal ?? 0 }}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                    <h3 class="text-gray-500 text-sm font-semibold">Favoritos</h3>
+                    <p class="text-3xl font-bold text-blue-600">{{ $favoritos ?? 0 }}</p>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+                    <h3 class="text-gray-500 text-sm font-semibold">Rating</h3>
+                    <p class="text-3xl font-bold text-purple-600">⭐ {{ $ratingPromedio ?? 4.5 }}</p>
+                </div>
+            </div>
+
+            <!-- GRÁFICOS -->
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-bold text-lg mb-4">📈 Mis Viajes por Mes</h3>
+                    <canvas id="viajesChart"></canvas>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-bold text-lg mb-4">💸 Gastos por Categoría</h3>
+                    <canvas id="gastosChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Gráfico Viajes
+        const viajesCtx = document.getElementById('viajesChart')?.getContext('2d');
+        if (viajesCtx) {
+            new Chart(viajesCtx, {
+                type: 'bar',
                 data: {
-                    labels: ['6AM','8AM','10AM','12PM','2PM','4PM','6PM'],
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
                     datasets: [{
-                        label: 'Usuarios',
-                        data: [120, 300, 250, 400, 380, 520, 610],
-                        tension: 0.4
+                        label: 'Viajes',
+                        data: [5, 8, 12, 10, 15, 18],
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Gráfico Gastos
+        const gastosCtx = document.getElementById('gastosChart')?.getContext('2d');
+        if (gastosCtx) {
+            new Chart(gastosCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Transporte', 'Comidas', 'Diversión'],
+                    datasets: [{
+                        data: [45, 30, 25],
+                        backgroundColor: ['#ef4444', '#10b981', '#3b82f6'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
         }
     </script>
+    @endif
 
 </x-app-layout>
