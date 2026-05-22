@@ -175,4 +175,61 @@ class RutaAdminController extends Controller
         $posiciones = Ruta::select('id', 'nombre', 'latitud', 'longitud', 'estado')->get();
         return response()->json($posiciones);
     }
+    /**
+ * Mostrar paradas de una ruta
+ */
+public function mostrarParadas(Ruta $ruta)
+{
+    $paradas = $ruta->paradas()->ordenadas()->get();
+    return view('admin.rutas.paradas.index', compact('ruta', 'paradas'));
+}
+ 
+/**
+ * Crear parada en una ruta
+ */
+public function crearParada(Request $request, Ruta $ruta)
+{
+    $validated = $request->validate([
+        'nombre' => 'required|string|max:255',
+        'latitud' => 'required|numeric',
+        'longitud' => 'required|numeric',
+        'orden' => 'required|integer|min:1',
+        'hora_estimada' => 'nullable|date_format:H:i',
+        'descripcion' => 'nullable|string|max:1000',
+    ]);
+ 
+    $parada = $ruta->paradas()->create($validated);
+    
+    return redirect()->back()->with('success', "✅ Parada '{$parada->nombre}' creada exitosamente");
+}
+ 
+/**
+ * Actualizar parada
+ */
+public function actualizarParada(Request $request, Parada $parada)
+{
+    $validated = $request->validate([
+        'nombre' => 'required|string|max:255',
+        'latitud' => 'required|numeric',
+        'longitud' => 'required|numeric',
+        'orden' => 'required|integer|min:1',
+        'hora_estimada' => 'nullable|date_format:H:i',
+        'descripcion' => 'nullable|string|max:1000',
+    ]);
+ 
+    $parada->update($validated);
+    
+    return redirect()->back()->with('success', "✅ Parada actualizada");
+}
+ 
+/**
+ * Eliminar parada
+ */
+public function eliminarParada(Parada $parada)
+{
+    $nombreParada = $parada->nombre;
+    $parada->delete();
+    
+    return redirect()->back()->with('success', "✅ Parada '{$nombreParada}' eliminada");
+}
 }

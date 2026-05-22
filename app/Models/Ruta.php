@@ -1,88 +1,107 @@
 <?php
-
+ 
 namespace App\Models;
-
+ 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\DB;
 use App\Traits\LogsActivity;
-use App\Models\Conductor;
-
+ 
 class Ruta extends Model
 {
-    use HasUuids, HasFactory, LogsActivity;
-
-    public $incrementing = false;
-    protected $keyType = 'string';
-
-   protected $fillable = [
-    'user_id',
-    'conductor_id',
-    'vehiculo_id',
-    'nombre',
-    'codigo',
-    'descripcion',
-    'distancia_km',
-    'duracion_estimada',
-    'estado',
-    'origen',
-    'destino'
-];
-
-    protected $casts = [
-        'parametros_ruta' => 'json',
-        'distancia_km' => 'float',
+    use LogsActivity;
+ 
+    protected $fillable = [
+        'nombre',
+        'codigo',
+        'descripcion',
+        'origen',
+        'origen_lat',
+        'origen_lng',
+        'destino',
+        'destino_lat',
+        'destino_lng',
+        'distancia_km',
+        'duracion_estimada',
+        'estado',
+        'conductor_id',
+        'paradas'
     ];
-
-    protected $appends = ['origen_coords', 'destino_coords'];
-
+ 
+    protected $casts = [
+        'paradas' => 'array',
+    ];
+ 
     /**
-     * RELACIONES
+     * Relación con Conductor
      */
-
-    // Cambiado de 'usuario' a 'conductor' para que funcione con: 
-    // Ruta::with(['conductor'])
     public function conductor(): BelongsTo
     {
-        return $this->belongsTo(Conductor::class, 'conductor_id');
+        return $this->belongsTo(Conductor::class);
     }
-
-    // Definimos 'vehiculo' para que funcione con: 
-    // Ruta::with(['vehiculo'])
-    public function vehiculo(): BelongsTo
-    {
-        return $this->belongsTo(Vehiculo::class);
-    }
-
+ 
+    /**
+     * Relación con Paradas
+     */
     public function paradas(): HasMany
     {
-        return $this->hasMany(Parada::class)->orderBy('numero_orden');
+        return $this->hasMany(Parada::class)->orderBy('orden');
     }
-
+ 
     /**
-     * ACCESSORS PARA POSTGIS
+     * Relación con Confirmaciones de Paradas
      */
-
-    public function getOrigenCoordsAttribute()
+    public function confirmaciones(): HasMany
     {
-        $coords = DB::table('rutas')
-            ->selectRaw('ST_X(origen::geometry) as lng, ST_Y(origen::geometry) as lat')
-            ->where('id', $this->id)
-            ->first();
-
-        return $coords ? ['lat' => (float)$coords->lat, 'lng' => (float)$coords->lng] : null;
+        return $this->hasMany(ParadaConfirmacion::class);
     }
-
-    public function getDestinoCoordsAttribute()
+ 
+    /**
+     * Obtener todas las confirmaciones de esta ruta por conductor
+     */
+    public function confirmacionesPorConductor($conductorId): HasMany
     {
-        $coords = DB::table('rutas')
-            ->selectRaw('ST_X(destino::geometry) as lng, ST_Y(destino::geometry) as lat')
-            ->where('id', $this->id)
-            ->first();
-
-        return $coords ? ['lat' => (float)$coords->lat, 'lng' => (float)$coords->lng] : null;
+        return $this->confirmaciones()->where('conductor_id', $conductorId);
+    }
+ 
+    /**
+     * Accesor para obtener coordenadas de origen como array
+     */
+    public function getOriginCoordinatesAttribute(): array
+    {
+        return [
+            'lat' => $this->origen_lat ?? 4.8604,
+            'lng' => $this->origen_lng ?? -74.0447,
+        ];
+    }
+ 
+    /**
+     * Accesor para obtener coordenadas de destino como array
+     */
+    public function getDestinationCoordinatesAttribute(): array
+    {
+        return [
+            'lat' => $this->destino_lat ?? 4.7110,
+            'lng' => $this->destino_lng ?? -74.0076,
+        ];
+    }
+ 
+    /**
+     * Scope para rutas activas
+     */
+    public function scopeActivas($query)
+    {
+        return $query->where('estado', 'activo');
+    }
+ 
+    /**
+     * Scope para rutas con coordenadas completas
+     */
+    public function scopeConCoordenadas($query)
+    {
+        return $query->whereNotNull('origen_lat')
+                    ->whereNotNull('origen_lng')
+                    ->whereNotNull('destino_lat')
+                    ->whereNotNull('destino_lng');
     }
 }

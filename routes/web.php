@@ -57,15 +57,39 @@ Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.
 | ÁREA DE CONDUCTORES (Protegida por rol:conductor)
 |--------------------------------------------------------------------------
 */
+// RUTAS PARA CONDUCTORES - PARADAS
+Route::middleware(['auth', 'role:conductor'])->prefix('conductor')->name('conductor.')->group(function () {
+    
+    // Confirmar llegada a parada
+    Route::post('/parada/{parada}/confirmar', [ConductorParadaController::class, 'confirmarLlegada'])
+        ->name('parada.confirmar');
+    
+    // Registrar pasajeros
+    Route::post('/parada/{parada}/pasajeros', [ConductorParadaController::class, 'registrarPasajeros'])
+        ->name('parada.pasajeros');
+    
+    // Ver historial de paradas confirmadas
+    Route::get('/paradas/historial', [ConductorParadaController::class, 'historial'])
+        ->name('paradas.historial');
+});
+ 
+// RUTAS PARA ADMIN - GESTIONAR PARADAS DE RUTAS
 Route::middleware(['auth', 'role:administrador'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('conductores', ConductorController::class);
-});
-Route::post('/api/jivochat/webhook', [JivochatController::class, 'webhook']);
-Route::middleware(['auth', 'role:administrador'])->group(function () {
-    Route::get('/admin/jivochat', [JivochatController::class, 'index'])->name('admin.jivochat.index');
-});
-Route::middleware(['auth', 'role:administrador'])->group(function () {
-    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
-    Route::get('/admin/audit-logs/{id}', [AuditLogController::class, 'show'])->name('admin.audit-logs.show');
+    
+    // Ver paradas de una ruta
+    Route::get('/rutas/{ruta}/paradas', [RutaAdminController::class, 'mostrarParadas'])
+        ->name('rutas.paradas.index');
+    
+    // Crear parada
+    Route::post('/rutas/{ruta}/paradas', [RutaAdminController::class, 'crearParada'])
+        ->name('rutas.paradas.store');
+    
+    // Editar parada
+    Route::put('/paradas/{parada}', [RutaAdminController::class, 'actualizarParada'])
+        ->name('paradas.update');
+    
+    // Eliminar parada
+    Route::delete('/paradas/{parada}', [RutaAdminController::class, 'eliminarParada'])
+        ->name('paradas.destroy');
 });
 require __DIR__.'/auth.php';

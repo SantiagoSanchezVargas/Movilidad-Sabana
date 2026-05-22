@@ -78,22 +78,22 @@
                     <!-- Card 1 -->
                     <div class="bg-slate-800/50 backdrop-blur rounded-lg p-8 border border-cyan-500/20 hover:border-cyan-500 transition duration-300 group">
                         <div class="text-5xl mb-4 transform group-hover:scale-110 transition">🗺️</div>
-                        <h3 class="text-2xl font-bold text-white mb-3">Rutas en Tiempo Real</h3>
-                        <p class="text-gray-400">Consulta rutas disponibles y ubicaciones de buses en tu zona</p>
+                        <h3 class="text-3xl font-black text-white mb-3">Rutas en Tiempo Real</h3>
+                        <p class="text-white-400">Consulta rutas disponibles y ubicaciones de buses en tu zona</p>
                     </div>
 
                     <!-- Card 2 -->
                     <div class="bg-slate-800/50 backdrop-blur rounded-lg p-8 border border-cyan-500/20 hover:border-cyan-500 transition duration-300 group">
                         <div class="text-5xl mb-4 transform group-hover:scale-110 transition">📊</div>
-                        <h3 class="text-2xl font-bold text-white mb-3">Gestión Administrativa</h3>
-                        <p class="text-gray-400">Panel de control completo para administradores del sistema</p>
+                        <h3 class="text-3xl font-black text-white mb-3">Gestión Administrativa</h3>
+                        <p class="text-white-400">Panel de control completo para administradores del sistema</p>
                     </div>
 
                     <!-- Card 3 -->
                     <div class="bg-slate-800/50 backdrop-blur rounded-lg p-8 border border-cyan-500/20 hover:border-cyan-500 transition duration-300 group">
                         <div class="text-5xl mb-4 transform group-hover:scale-110 transition">🚗</div>
-                        <h3 class="text-2xl font-bold text-white mb-3">Para Conductores</h3>
-                        <p class="text-gray-400">Control de rutas, alertas GPS y reportes en tiempo real</p>
+                        <h3 class="text-3xl font-black text-white mb-3">Para Conductores</h3>
+                        <p class="text-white-400">Control de rutas, alertas GPS y reportes en tiempo real</p>
                     </div>
                 </div>
 
@@ -104,7 +104,7 @@
                             → Ir al Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-4 rounded-lg font-bold text-lg transition duration-200 shadow-lg">
+                        <a href="{{ route('login') }}" class="text-3xl font-black text-black mb-3">
                             🔐 Iniciar Sesión
                         </a>
                         @if (Route::has('register'))

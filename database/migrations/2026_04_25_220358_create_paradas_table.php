@@ -1,56 +1,41 @@
+database/migrations/YYYY_MM_DD_create_paradas_table.php
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     /**
-     * Ejecutar la migración.
-     * Crea tabla de paradas con tipos y geometría PostGIS
+     * Run the migrations.
      */
     public function up(): void
     {
         Schema::create('paradas', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('ruta_id');
-            $table->unsignedSmallInteger('numero_orden');
+            $table->foreign('ruta_id')->references('id')->on('rutas')->onDelete('cascade');
             
-            $table->string('nombre');
-            $table->text('descripcion')->nullable();
+            $table->string('nombre')->comment('Nombre de la parada');
+            $table->decimal('latitud', 10, 8)->comment('Coordenada de latitud');
+            $table->decimal('longitud', 11, 8)->comment('Coordenada de longitud');
             
-            // Ajustado para coincidir con el controlador
-            $table->enum('tipo_parada', ['salida', 'intermedia', 'destino'])
-                  ->default('intermedia');
-
-            // Columnas físicas para lat/lng (Evitan el error "Undefined column")
-            $table->decimal('lat', 10, 8);
-            $table->decimal('lng', 11, 8);
-            
-            $table->decimal('tarifa_desde_origen', 10, 2)->default(0);
-            $table->decimal('tarifa_hacia_destino', 10, 2)->default(0);
-            $table->float('radio_metros')->default(300);
+            $table->integer('orden')->comment('Orden en que aparece en la ruta (1, 2, 3...)');
+            $table->time('hora_estimada')->nullable()->comment('Hora estimada de llegada');
+            $table->text('descripcion')->nullable()->comment('Descripción de la parada');
             
             $table->timestamps();
             
-            $table->foreign('ruta_id')
-                  ->references('id')
-                  ->on('rutas')
-                  ->onDelete('cascade');
-
             $table->index('ruta_id');
-            $table->unique(['ruta_id', 'numero_orden']);
+            $table->index('orden');
         });
-
-        // Columna PostGIS para cálculos espaciales
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE paradas ADD COLUMN ubicacion geometry(Point, 4326)');
-            DB::statement('CREATE INDEX idx_paradas_ubicacion ON paradas USING GIST(ubicacion)');
-        }
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('paradas');
