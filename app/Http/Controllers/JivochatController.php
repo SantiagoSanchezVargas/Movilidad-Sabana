@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JivochatMessage;
 use Illuminate\Http\Request;
 
-class JivochatController extends Controller
+class JivoChatController extends Controller
 {
     // Webhook que JivoChat llama cuando hay nuevo mensaje
     public function webhook(Request $request)

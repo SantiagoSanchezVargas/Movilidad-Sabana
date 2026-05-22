@@ -20,37 +20,43 @@ public function index()
     $user = Auth::user();
 
     // Si es admin, mostrar dashboard admin
-    if ($user->hasRole('administrador')) {
-        $totalRutas = \App\Models\Ruta::count();
-        $rutasActivas = \App\Models\Ruta::where('estado', 'activo')->count();
-        $totalConductores = \App\Models\Conductor::count();
-        $totalUsuarios = \App\Models\User::count();
-        
-        // Contar por rol (simplificado)
-        $adminCount = 1; // Asumimos al menos 1 admin
-        $conductorCount = $totalUsuarios > 1 ? intval($totalUsuarios / 2) : 0;
-        $pasajeroCount = $totalUsuarios - $adminCount - $conductorCount;
+  if ($user->hasRole('administrador')) {
 
-        $rutas = \App\Models\Ruta::with('conductor')->latest()->limit(10)->get();
+    $totalRutas = \App\Models\Ruta::count();
+    $rutasActivas = \App\Models\Ruta::where('estado', 'activo')->count();
+    $totalConductores = \App\Models\Conductor::count();
+    $totalUsuarios = \App\Models\User::count();
 
-        return view('admin.dashboard', compact(
-            'totalRutas',
-            'rutasActivas',
-            'totalConductores',
-            'totalUsuarios',
-            'adminCount',
-            'conductorCount',
-            'pasajeroCount',
-            'rutas'
-        ));
-    }
+    $adminCount = 1;
+    $conductorCount = $totalUsuarios > 1 ? intval($totalUsuarios / 2) : 0;
+    $pasajeroCount = $totalUsuarios - $adminCount - $conductorCount;
+
+    $rutas = \App\Models\Ruta::with('conductor')->latest()->limit(10)->get();
+
+    // ESTA LÍNEA FALTABA
+    $incidentes = \App\Models\Incidente::where('activo', true)->get();
+
+    return view('admin.dashboard', compact(
+        'totalRutas',
+        'rutasActivas',
+        'totalConductores',
+        'totalUsuarios',
+        'adminCount',
+        'conductorCount',
+        'pasajeroCount',
+        'rutas',
+        'incidentes' // Y ESTO TAMBIÉN
+    ));
+}
 
 // Si es conductor, mostrar dashboard conductor
 if ($user->hasRole('conductor')) {
    $conductor = $user->conductor;
 
 $misRutas = $conductor
-    ? \App\Models\Ruta::where('conductor_id', $conductor->id)->get()
+    ? \App\Models\Ruta::with('paradas')
+        ->where('conductor_id', $conductor->id)
+        ->get()
     : collect();
     $totalViajes = $misRutas->count();
     $viajesCompletados = $misRutas->where('estado', 'activo')->count();
@@ -89,7 +95,7 @@ return view('dashboard', compact(
         $data = [
             'totalRutas' => Ruta::count(),
             'rutasActivas' => Ruta::where('estado', 'activo')->count(),
-            'rutas' => Ruta::with(['conductor', 'vehiculo'])->latest()->get(),
+            'rutas' => Ruta::with('conductor')->latest()->get(),
             'incidentes' => Incidente::where('activo', true)->latest()->get(),
             'stats' => [
                 'eficiencia' => 92,

@@ -96,7 +96,7 @@
                         @forelse($rutas as $ruta)
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="px-6 py-4 font-bold">{{ $ruta->nombre }}</td>
-                                <td class="px-6 py-4">{{ $ruta->conductor->nombre ?? 'N/A' }}</td>
+                                <td class="px-6 py-4">{{ $ruta->conductor?->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 rounded-full text-xs font-bold 
                                         {{ $ruta->estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">

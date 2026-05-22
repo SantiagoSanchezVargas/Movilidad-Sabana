@@ -61,7 +61,7 @@
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-gray-500 text-sm font-semibold">Alertas Hoy</h3>
-                    <p class="text-3xl font-bold text-red-600">{{ $incidentes->count() ?? 0 }}</p>
+                    <p class="text-3xl font-bold text-red-600">@if($incidentes->count() > 0){{ $incidentes->count() }}@endif</p>
                 </div>
             </div>
 
@@ -104,7 +104,7 @@
             </div>
 
             <!-- Incidentes -->
-            @if($incidentes->count() > 0)
+            @if($incidentes && $incidentes->count() > 0)
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 bg-red-50">
                     <h3 class="text-lg font-bold text-red-900">⚠️ Incidentes Activos</h3>
@@ -153,7 +153,7 @@
                             <td class="px-6 py-4">{{ $ruta->distancia_km }} km</td>
                             <td class="px-6 py-4">
                                 <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
-                                    {{ $ruta->paradas->count() ?? 0 }} paradas
+                                    {{ optional($ruta->paradas)->count() ?? 0 }} paradas
                                 </span>
                             </td>
                             <td class="px-6 py-4">
@@ -222,7 +222,7 @@
                         {{-- Buscar confirmación de esta parada --}}
                         @php
                             $confirmacion = \App\Models\ParadaConfirmacion::where('parada_id', $parada->id)
-                                ->where('conductor_id', auth()->user()->id)
+                                ->where('conductor_id', auth()->user()->conductor->id)
                                 ->where('ruta_id', $ruta->id)
                                 ->first();
                         @endphp
@@ -395,7 +395,6 @@ document.addEventListener('DOMContentLoaded', function() {
  
 @else
     {{-- DASHBOARD PASAJERO --}}
-    @else
     <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 

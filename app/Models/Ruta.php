@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\LogsActivity;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
  
 class Ruta extends Model
 {
-    use LogsActivity;
- 
+     use HasUuids, LogsActivity;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $fillable = [
         'nombre',
         'codigo',

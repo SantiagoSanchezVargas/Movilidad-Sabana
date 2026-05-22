@@ -1,4 +1,3 @@
-database/migrations/YYYY_MM_DD_create_paradas_table.php
 
 <?php
 

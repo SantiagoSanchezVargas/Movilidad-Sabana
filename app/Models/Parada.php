@@ -15,19 +15,15 @@ class Parada extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = [
-        'ruta_id',
-        'nombre',
-        'numero_orden',
-        'lat',
-        'lng',
-        'tarifa_desde_origen',
-        'tipo_parada',
-        'ubicacion',
-        'descripcion',
-        'radio_metros',
-        'es_obligatoria'
-    ];
+ protected $fillable = [
+    'ruta_id',
+    'nombre',
+    'latitud',
+    'longitud',
+    'orden',
+    'hora_estimada',
+    'descripcion',
+];
 
     // Esto evita que el binario de PostGIS ensucie tu JSON
     protected $hidden = [
