@@ -18,11 +18,15 @@ class Parada extends Model
  protected $fillable = [
     'ruta_id',
     'nombre',
-    'latitud',
-    'longitud',
-    'orden',
+    'lat',
+    'lng',
+    'numero_orden',
     'hora_estimada',
     'descripcion',
+    'tipo',
+    'tarifa',
+    'radio',
+    'obligatoria',
 ];
 
     // Esto evita que el binario de PostGIS ensucie tu JSON
@@ -55,7 +59,9 @@ class Parada extends Model
     if (isset($this->attributes['lat']) && isset($this->attributes['lng'])) {
         $lat = $this->attributes['lat'];
         $lng = $this->attributes['lng'];
-        $this->attributes['ubicacion'] = DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)");
+        $this->attributes['ubicacion'] = DB::raw(
+    "ST_SetSRID(ST_MakePoint($lng, $lat), 4326)"
+);
     } 
     // Si por alguna razón no hay coordenadas, evitamos el string vacío que rompe PostGIS
     else {

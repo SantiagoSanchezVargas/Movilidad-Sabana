@@ -123,7 +123,7 @@
         </div>
     </div>
 
-    {{-- DASHBOARD CONDUCTOR MEJORADO --}}
+{{-- DASHBOARD CONDUCTOR MEJORADO --}}
 @elseif(auth()->user()->hasRole('conductor'))
 <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
@@ -148,17 +148,17 @@
                     @forelse($misRutas as $ruta)
                         <tr class="border-b hover:bg-gray-50">
                             <td class="px-6 py-4 font-bold">{{ $ruta->nombre }}</td>
-                            <td class="px-6 py-4">{{ $ruta->origen }}</td>
-                            <td class="px-6 py-4">{{ $ruta->destino }}</td>
-                            <td class="px-6 py-4">{{ $ruta->distancia_km }} km</td>
+                            <td class="px-6 py-4">{{ $ruta->origen ?? 'N/A' }}</td>
+                            <td class="px-6 py-4">{{ $ruta->destino ?? 'N/A' }}</td>
+                            <td class="px-6 py-4">{{ $ruta->distancia_km ?? 'N/A' }} km</td>
                             <td class="px-6 py-4">
                                 <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
-                                    {{ optional($ruta->paradas)->count() ?? 0 }} paradas
+                                    {{ $ruta->paradas->count() ?? 0 }} paradas
                                 </span>
                             </td>
                             <td class="px-6 py-4">
                                 <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
-                                    {{ ucfirst($ruta->estado) }}
+                                    {{ ucfirst($ruta->estado ?? 'activo') }}
                                 </span>
                             </td>
                         </tr>
@@ -174,13 +174,14 @@
         </div>
  
         <!-- SECCIÓN MAPA CON PARADAS -->
+        @forelse($misRutas as $ruta)
         <div class="bg-white rounded-lg shadow-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200 bg-slate-800 text-white">
-                <h3 class="text-lg font-bold">🗺️ Mi Ruta en Tiempo Real</h3>
+                <h3 class="text-lg font-bold">🗺️ Ruta: {{ $ruta->nombre }}</h3>
             </div>
             
             <!-- Contenedor del mapa -->
-            <div id="map" style="height: 600px;"></div>
+            <div id="map-{{ $ruta->id }}" style="height: 600px; border-bottom: 1px solid #e5e7eb;"></div>
             
             <!-- Leyenda -->
             <div class="px-6 py-4 bg-gray-50 border-t">
@@ -210,94 +211,54 @@
         </div>
  
         <!-- PARADAS DE LA RUTA -->
-        @foreach($misRutas as $ruta)
-            @if($ruta->paradas && $ruta->paradas->count() > 0)
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 bg-blue-600 text-white">
-                    <h3 class="text-lg font-bold">🛑 Paradas de {{ $ruta->nombre }}</h3>
-                </div>
-                
-                <div class="space-y-3 p-6">
-                    @foreach($ruta->paradas->sortBy('orden') as $parada)
-                        {{-- Buscar confirmación de esta parada --}}
-                        @php
-                            $confirmacion = \App\Models\ParadaConfirmacion::where('parada_id', $parada->id)
-                                ->where('conductor_id', auth()->user()->conductor->id)
-                                ->where('ruta_id', $ruta->id)
-                                ->first();
-                        @endphp
- 
-                        <div class="p-4 rounded-lg border-2 
-                            {{ $confirmacion && $confirmacion->confirmado_en ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-300' }}">
-                            
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center gap-3">
-                                    <!-- Número de parada -->
-                                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white
-                                        {{ $confirmacion && $confirmacion->confirmado_en ? 'bg-green-600' : 'bg-blue-600' }}">
-                                        {{ $parada->orden }}
-                                    </div>
-                                    
-                                    <!-- Info parada -->
-                                    <div>
-                                        <h4 class="font-bold text-lg text-gray-800">{{ $parada->nombre }}</h4>
-                                        <p class="text-sm text-gray-600">
-                                            📍 {{ $parada->latitud }}, {{ $parada->longitud }}
-                                        </p>
-                                        @if($parada->hora_estimada)
-                                            <p class="text-sm text-gray-600">⏰ Hora estimada: {{ $parada->hora_estimada }}</p>
-                                        @endif
-                                        @if($parada->descripcion)
-                                            <p class="text-sm text-gray-600">{{ $parada->descripcion }}</p>
-                                        @endif
-                                    </div>
-                                </div>
- 
-                                <!-- Botón de confirmación -->
-                                @if(!$confirmacion || !$confirmacion->confirmado_en)
-                                    <form action="{{ route('conductor.parada.confirmar', $parada->id) }}" method="POST" class="inline">
-                                        @csrf
-                                        <input type="hidden" name="ruta_id" value="{{ $ruta->id }}">
-                                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
-                                            ✅ Confirmar Llegada
-                                        </button>
-                                    </form>
-                                @else
-                                    <div class="text-center">
-                                        <p class="text-green-700 font-bold text-sm">✓ Confirmado</p>
-                                        <p class="text-gray-600 text-xs">{{ $confirmacion->confirmado_en->format('H:i') }}</p>
-                                        @if($confirmacion->pasajeros_subieron)
-                                            <p class="text-blue-600 text-sm font-semibold">👥 {{ $confirmacion->pasajeros_subieron }} pasajeros</p>
-                                        @endif
-                                    </div>
-                                @endif
-                            </div>
- 
-                            <!-- Info de confirmación si ya está confirmada -->
-                            @if($confirmacion && $confirmacion->confirmado_en)
-                            <div class="mt-3 pt-3 border-t border-green-300">
-                                <div class="grid grid-cols-3 gap-4 text-center text-sm">
-                                    <div>
-                                        <p class="text-gray-600">Llegada</p>
-                                        <p class="font-bold">{{ $confirmacion->confirmado_en->format('H:i:s') }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600">Ubicación</p>
-                                        <p class="font-bold text-xs">{{ number_format($confirmacion->latitud_confirmacion, 4) }}, {{ number_format($confirmacion->longitud_confirmacion, 4) }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-600">Pasajeros</p>
-                                        <p class="font-bold">{{ $confirmacion->pasajeros_subieron ?? 0 }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
+        @if($ruta->paradas && $ruta->paradas->count() > 0)
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 bg-blue-600 text-white">
+                <h3 class="text-lg font-bold">🛑 Paradas de {{ $ruta->nombre }}</h3>
             </div>
-            @endif
-        @endforeach
+            
+            <div class="space-y-3 p-6">
+                @foreach($ruta->paradas->sortBy('orden') as $parada)
+                    <div class="p-4 rounded-lg border-2 bg-gray-50 border-gray-300 hover:border-blue-400 transition">
+                        
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <!-- Número de parada -->
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-blue-600">
+                                    {{ $parada->orden }}
+                                </div>
+                                
+                                <!-- Info parada -->
+                                <div>
+                                    <h4 class="font-bold text-lg text-gray-800">{{ $parada->nombre }}</h4>
+                                    <p class="text-sm text-gray-600">
+                                        📍 {{ number_format($parada->latitud, 4) }}, {{ number_format($parada->longitud, 4) }}
+                                    </p>
+                                    @if($parada->hora_estimada)
+                                        <p class="text-sm text-gray-600">⏰ Hora estimada: {{ $parada->hora_estimada }}</p>
+                                    @endif
+                                    @if($parada->descripcion)
+                                        <p class="text-sm text-gray-600">{{ $parada->descripcion }}</p>
+                                    @endif
+                                </div>
+                            </div>
+ 
+                            <!-- Botón de confirmación -->
+                            <form action="{{ route('conductor.parada.confirmar', $parada->id) }}" method="POST" class="inline">
+                                @csrf
+                                <input type="hidden" name="ruta_id" value="{{ $ruta->id }}">
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                                    ✅ Confirmar Llegada
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+        @empty
+        @endforelse
  
     </div>
 </div>
@@ -308,35 +269,40 @@
  
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const map = L.map('map').setView([4.8604, -74.0447], 12);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
-        maxZoom: 19
-    }).addTo(map);
- 
     const rutasData = {!! json_encode($misRutas->map(function($ruta) {
         return [
+            'id' => $ruta->id,
             'nombre' => $ruta->nombre,
             'origen' => $ruta->origen,
             'destino' => $ruta->destino,
             'distancia' => $ruta->distancia_km,
-            'originLat' => $ruta->origen_lat ?? 4.8604,
-            'originLng' => $ruta->origen_lng ?? -74.0447,
-            'destinoLat' => $ruta->destino_lat ?? 4.7110,
-            'destinoLng' => $ruta->destino_lng ?? -74.0076,
+            'originLat' => (float)($ruta->origen_lat ?? 4.8604),
+            'originLng' => (float)($ruta->origen_lng ?? -74.0447),
+            'destinoLat' => (float)($ruta->destino_lat ?? 4.7110),
+            'destinoLng' => (float)($ruta->destino_lng ?? -74.0076),
             'paradas' => $ruta->paradas ? $ruta->paradas->map(function($p) {
                 return [
                     'nombre' => $p->nombre,
-                    'lat' => $p->latitud,
-                    'lng' => $p->longitud,
+                    'lat' => (float)$p->latitud,
+                    'lng' => (float)$p->longitud,
                     'orden' => $p->orden,
                 ];
             })->toArray() : [],
         ];
     })->toArray()) !!};
  
+    // Crear un mapa por cada ruta
     rutasData.forEach(ruta => {
+        const mapContainer = document.getElementById('map-' + ruta.id);
+        if (!mapContainer) return;
+ 
+        const map = L.map(mapContainer).setView([ruta.originLat, ruta.originLng], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 19
+        }).addTo(map);
+ 
         // 🟢 Origen (verde)
         L.circleMarker([ruta.originLat, ruta.originLng], {
             color: '#22c55e',
@@ -373,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }).addTo(map).bindPopup(`
                 <strong>Parada ${parada.orden}</strong><br>
                 🛑 ${parada.nombre}<br>
-                📍 ${parada.lat}, ${parada.lng}
+                📍 ${parada.lat.toFixed(4)}, ${parada.lng.toFixed(4)}
             `);
         });
  
@@ -394,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
  
 @else
+
     {{-- DASHBOARD PASAJERO --}}
     <div class="py-10 bg-gradient-to-br from-slate-100 via-white to-cyan-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">

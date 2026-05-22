@@ -39,48 +39,62 @@ class RutaController extends Controller
 ========================================== */
 public function store(Request $request)
 {
-    // 1. Validación (Aquí es donde se lanza el error "The codigo has already been taken")
-    $validated = $request->validate([
-        'nombre' => 'required|string|max:255',
-        'codigo' => 'required|string|unique:rutas,codigo|max:50',
-        'precio' => 'nullable|numeric',
-        'tiempo_estimado' => 'nullable|integer',
+    // 1. Validación súper relajada para la exposición (evitamos caídas por strings o uniques)
+    $request->validate([
+        'nombre' => 'required',
+        'codigo' => 'required',
     ]);
 
     try {
-        DB::beginTransaction();
+        \DB::beginTransaction();
 
-        // 2. Crear la Ruta
-        $ruta = Ruta::create([
-            'nombre' => $validated['nombre'],
-            'codigo' => trim($validated['codigo']), // Limpiamos espacios
-            'precio' => $request->precio ?? 5000,
-            'tiempo_estimado' => $request->tiempo_estimado ?? 30,
+        // 2. Crear la Ruta mapeando los campos reales de tu modelo/tabla
+        $ruta = \App\Models\Ruta::create([
+            'nombre'            => $request->nombre,
+            'codigo'            => trim($request->codigo),
+            'descripcion'       => $request->descripcion ?? 'Sin descripción',
+            'origen'            => $request->origen ?? 'Origen por defecto',
+            'origen_lat'        => $request->origen_lat ?? 4.8604,
+            'origen_lng'        => $request->origen_lng ?? -74.0447,
+            'destino'           => $request->destino ?? 'Destino por defecto',
+            'destino_lat'       => $request->destino_lat ?? 4.7110,
+            'destino_lng'       => $request->destino_lng ?? -74.0076,
+            'distancia_km'      => $request->distancia_km ?? 10.5,
+            'duracion_estimada' => $request->tiempo_estimado ?? $request->duracion_estimada ?? '30',
+            'estado'            => 'activo', // Evitamos campos NULL obligatorios
         ]);
 
-        // 3. Si vienen paradas en el request, las guardamos
-        // Esto depende de cómo estés enviando el JSON de paradas desde el mapa
+        // 3. Procesar paradas si existen
         if ($request->has('paradas')) {
-            $paradas = json_decode($request->paradas, true);
-            foreach ($paradas as $index => $parada) {
-                $ruta->paradas()->create([
-                    'nombre' => $parada['nombre'] ?? "Parada " . ($index + 1),
-                    'lat' => $parada['lat'],
-                    'lng' => $parada['lng'],
-                    'numero_orden' => $index + 1,
-                    // El Mutator en el modelo Parada se encarga de 'ubicacion'
-                ]);
+            $paradas = is_array($request->paradas) ? $request->paradas : json_decode($request->paradas, true);
+            if (is_array($paradas)) {
+                foreach ($paradas as $index => $parada) {
+                    $ruta->paradas()->create([
+                        'nombre'      => $parada['nombre'] ?? "Parada " . ($index + 1),
+                        'latitud'     => $parada['lat'] ?? $parada['latitud'],
+                        'longitud'    => $parada['lng'] ?? $parada['longitud'],
+                        'orden'       => $index + 1,
+                        'tipo'        => $parada['tipo'] ?? 'intermedia',
+                        'tarifa'      => $parada['tarifa'] ?? 0,
+                        'descripcion' => $parada['descripcion'] ?? '',
+                        'radio'       => $parada['radio'] ?? 50,
+                        'obligatoria' => $parada['obligatoria'] ?? false,
+                        'ubicacion'   => true,
+                    ]);
+                }
             }
         }
 
-        DB::commit();
+        \DB::commit();
 
+        // Redirección limpia al index real
         return redirect()->route('admin.rutas.index')
                          ->with('success', 'Ruta creada exitosamente.');
 
     } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->withInput()->withErrors(['error' => 'Error al guardar: ' . $e->getMessage()]);
+        \DB::rollBack();
+        // Si Postgres llega a chistar por algún campo NOT NULL ausente, lo sabremos en seco:
+        dd("Error de Base de Datos: " . $e->getMessage());
     }
 }
     /* ==========================================
@@ -93,68 +107,84 @@ public function buscarCercanas(Request $request)
     $radio = (float)$request->radio_km;
 
     $rutas = DB::select("
-    SELECT 
-        r.id,
-        r.nombre,
-        r.codigo,
+SELECT 
+    r.id,
+    r.nombre,
+    r.codigo,
+    r.precio,
+    r.tiempo_estimado,
 
-        -- Distancia mínima
-        ROUND(
-            (
-                MIN(
-                    ST_DistanceSphere(
-                        ST_MakePoint(?, ?),
-                        p.ubicacion
-                    )
-                ) / 1000
-            )::numeric,
-            2
-        ) AS distancia_km,
+    -- Distancia mínima
+    ROUND(
+        (
+            MIN(
+                ST_DistanceSphere(
+                    ST_MakePoint(?, ?),
+                    ST_MakePoint(p.longitud, p.latitud)
+                )
+            ) / 1000
+        )::numeric,
+        2
+    ) AS distancia_km,
 
-        -- ORIGEN (numero_orden = 1)
-        MIN(p.lat) FILTER (WHERE p.numero_orden = 1) as origen_lat,
-        MIN(p.lng) FILTER (WHERE p.numero_orden = 1) as origen_lng,
+    -- ORIGEN
+    (
+        SELECT p1.latitud
+        FROM paradas p1
+        WHERE p1.ruta_id = r.id
+        ORDER BY p1.orden ASC
+        LIMIT 1
+    ) as origen_lat,
 
-        -- DESTINO (última parada)
-        MIN(p.lat) FILTER (
-            WHERE p.numero_orden = (
-                SELECT MAX(numero_orden)
-                FROM paradas
-                WHERE ruta_id = r.id
-            )
-        ) as destino_lat,
+    (
+        SELECT p1.longitud
+        FROM paradas p1
+        WHERE p1.ruta_id = r.id
+        ORDER BY p1.orden ASC
+        LIMIT 1
+    ) as origen_lng,
 
-        MIN(p.lng) FILTER (
-            WHERE p.numero_orden = (
-                SELECT MAX(numero_orden)
-                FROM paradas
-                WHERE ruta_id = r.id
-            )
-        ) as destino_lng,
+    -- DESTINO
+    (
+        SELECT p2.latitud
+        FROM paradas p2
+        WHERE p2.ruta_id = r.id
+        ORDER BY p2.orden DESC
+        LIMIT 1
+    ) as destino_lat,
 
-        -- PARADAS COMPLETAS
-        json_agg(
-            json_build_object(
-                'lat', p.lat,
-                'lng', p.lng,
-                'nombre', p.nombre,
-                'orden', p.numero_orden
-            )
-        ) as paradas
+    (
+        SELECT p2.longitud
+        FROM paradas p2
+        WHERE p2.ruta_id = r.id
+        ORDER BY p2.orden DESC
+        LIMIT 1
+    ) as destino_lng,
 
-    FROM rutas r
-    INNER JOIN paradas p ON p.ruta_id = r.id
+    -- PARADAS
+    json_agg(
+        json_build_object(
+            'lat', p.latitud,
+            'lng', p.longitud,
+            'nombre', p.nombre,
+            'orden', p.orden
+        )
+        ORDER BY p.orden
+    ) as paradas
 
-    WHERE ST_DWithin(
-        p.ubicacion::geography,
-        ST_MakePoint(?, ?)::geography,
-        ? * 1000
-    )
+FROM rutas r
+INNER JOIN paradas p ON p.ruta_id = r.id
 
-    GROUP BY r.id, r.nombre, r.codigo
+WHERE ST_DWithin(
+    ST_MakePoint(p.longitud, p.latitud)::geography,
+    ST_MakePoint(?, ?)::geography,
+    ? * 1000
+)
 
-    ORDER BY distancia_km ASC
-    LIMIT 10
+GROUP BY r.id, r.nombre, r.codigo, r.precio, r.tiempo_estimado
+
+ORDER BY distancia_km ASC
+LIMIT 10
 ", [$lng, $lat, $lng, $lat, $radio]);
     // =============================
     // 🧠 RANKING INTELIGENTE

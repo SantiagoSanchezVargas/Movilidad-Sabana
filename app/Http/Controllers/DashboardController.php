@@ -36,7 +36,7 @@ public function index()
     // ESTA LÍNEA FALTABA
     $incidentes = \App\Models\Incidente::where('activo', true)->get();
 
-    return view('admin.dashboard', compact(
+    return view('dashboard', compact(
         'totalRutas',
         'rutasActivas',
         'totalConductores',

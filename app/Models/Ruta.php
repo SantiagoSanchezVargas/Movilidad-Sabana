@@ -14,26 +14,25 @@ class Ruta extends Model
 
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $fillable = [
-        'nombre',
-        'codigo',
-        'descripcion',
-        'origen',
-        'origen_lat',
-        'origen_lng',
-        'destino',
-        'destino_lat',
-        'destino_lng',
-        'distancia_km',
-        'duracion_estimada',
-        'estado',
-        'conductor_id',
-        'paradas'
-    ];
+   protected $fillable = [
+    'id',
+    'user_id', // 👈 ASEGÚRATE DE QUE ESTÉ AQUÍ
+    'nombre',
+    'codigo',
+    'descripcion',
+    'origen',
+    'destino',
+    'distancia_km',
+    'duracion_estimada',
+    'estado',
+    'conductor_id',
+    'parametros_ruta'
+];
  
-    protected $casts = [
-        'paradas' => 'array',
-    ];
+   protected $casts = [
+    'paradas' => 'array',
+    'parametros_ruta' => 'array', // 👈 Convertir JSON de Postgres a Array de PHP automáticamente
+];
  
     /**
      * Relación con Conductor
