@@ -1,18 +1,18 @@
-# 🚀 MovSabana - Sistema de Gestión de Movilidad Urbana
+# MovSabana - Sistema de Gestión de Movilidad Urbana
 
 **MovSabana** es una plataforma web diseñada para optimizar la gestión de rutas de transporte en la región de Sabana de Bogotá.
 
-## ✨ Características
+## Características
 
-- 🔐 Autenticación con roles (Admin, Conductor, Pasajero)
-- 📍 CRUD completo de rutas con coordenadas GPS
-- 🗺️ Mapas interactivos con Leaflet.js
-- 📊 Dashboards especializados por rol
-- 🛑 Sistema de paradas intermedias
-- 💬 Chat en vivo con JivoChat
-- 📝 Auditoría de todas las acciones
+- Autenticación con roles (Admin, Conductor, Pasajero)
+- CRUD completo de rutas con coordenadas GPS
+- Mapas interactivos con Leaflet.js
+- Dashboards especializados por rol
+- Sistema de paradas intermedias
+- Chat en vivo con JivoChat
+- Auditoría de todas las acciones
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 - **Backend:** PHP 8.2 + Laravel 11
 - **Frontend:** Blade + Tailwind CSS + Alpine.js
@@ -21,7 +21,7 @@
 - **Mapas:** Leaflet.js 1.9.4
 - **Hosting:** Railway.app
 
-## 📦 Instalación Rápida
+## Instalación Rápida
 
 ```bash
 git clone https://github.com/SantiagoSanchezVargas/Movilidad-Sabana.git
@@ -35,7 +35,7 @@ php artisan serve
 
 Accede en: `http://localhost:8000`
 
-## 🧪 Cuentas de Prueba
+## Cuentas de Prueba
 
 | Rol | Email | Contraseña |
 |-----|-------|-----------|
@@ -43,11 +43,11 @@ Accede en: `http://localhost:8000`
 | Conductor | conductor@test.com | password |
 | Pasajero | pasajero@test.com | password |
 
-## 🌐 Deployment
+## Deployment
 
 Desplegado en Railway: `movilidad-sabana-production.up.railway.app`
 
-## 📞 Contacto
+## Contacto
 **Autor:** Santiago Sánchez Vargas  
 **Universidad:** Universidad de Cundinamarca  
 
